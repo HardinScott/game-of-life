@@ -29,7 +29,7 @@ const (
 ` + "\x00"
 	rows         = 200
 	columns      = 200
-	chanceToLive = 0.12
+	chanceToLive = 0.05
 	fps          = 60
 )
 
@@ -62,7 +62,7 @@ func main() {
 	mainWindow = glfwInit()
 	defer glfw.Terminate()
 
-	//mainWindow.SetMouseButtonCallback(mouseClick)
+	mainWindow.SetMouseButtonCallback(mouseClick)
 
 	program = initOpenGL()
 	cells = createCells()
@@ -74,9 +74,26 @@ func main() {
 	}
 }
 
-//func mouseClick(window *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
-//TODO: make an init state where you pick which cells should be alive by clicking on them
-//}
+func mouseClick(window *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
+	lastX := 0.0
+	lastY := 0.0
+	window.SetInputMode(glfw.StickyKeysMode, glfw.True)
+	if button == glfw.MouseButtonLeft && action == glfw.Press {
+		for window.GetMouseButton(glfw.MouseButtonLeft) != glfw.Release {
+			t := time.Now()
+			x, y := window.GetCursorPos()
+			if x != lastX || y != lastY {
+				x = 2.0*(x+0.5)/xBound - 1.0
+				y = 2.0*(y+0.5)/yBound - 1.0
+				fmt.Println(x, y)
+				lastX = x
+				lastY = y
+				draw()
+			}
+			time.Sleep(time.Second/time.Duration(fps) - time.Since(t))
+		}
+	}
+}
 
 func glfwInit() *glfw.Window {
 	err := glfw.Init()
@@ -191,6 +208,7 @@ func createCells() [][]*cell {
 	return cells
 }
 
+//todo: map cells to x y coordinates
 func createCell(x, y int) *cell {
 	points := make([]float32, len(square), len(square))
 	copy(points, square)
